@@ -194,7 +194,7 @@
     var tog   = document.getElementById('music-toggle');
     var lbl   = tog.querySelector('.lbl');
     var ico   = tog.querySelector('.ico');
-    audio.volume = 0.6;
+    audio.volume = 0.3;
 
     // Выбор игрока запоминается (если хранилище доступно)
     var off = false;
@@ -251,7 +251,7 @@
         tog.style.display = 'none';
         hideGate();
         var v = parseFloat(volume);
-        if (!isNaN(v)) audio.volume = Math.max(0, Math.min(1, 0.6 * v));
+        if (!isNaN(v)) audio.volume = Math.max(0, Math.min(1, 0.3 * v));
       } catch(e){}
       if (typeof prevGD === 'function') { try { prevGD.apply(this, arguments); } catch(e){} }
     };
