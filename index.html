@@ -98,11 +98,12 @@
   }
   @keyframes dots{0%{content:"";}25%{content:".";}50%{content:"..";}75%{content:"...";}100%{content:"";}}
 
-  /* Копирайт/атрибуция внизу экрана */
-  /* Вверху слева: внизу её перекрывает стандартная полоса загрузки GMod */
+  /* Копирайт/атрибуция: в общем столбце под названием (не наезжает на заголовок при любой высоте окна;
+     у самого низа её перекрывает стандартная полоса загрузки GMod) */
   .credit{
-    position:fixed;top:3vh;left:3vw;z-index:5;
-    max-width:min(560px, calc(100vw - 3vw - 300px));
+    position:relative;z-index:5;
+    margin:0 0 1.4em;
+    max-width:min(620px, 88vw);
     text-align:left;
     padding:8px 14px;
     border-left:2px solid rgba(200,162,74,0.55);
@@ -167,14 +168,13 @@
   <div class="content">
     <div class="title">S.T.A.L.K.E.R. PERIMETER</div>
     <div class="subtitle">Garry's mod RP</div>
+    <!-- Копирайт/атрибуция -->
+    <div class="credit">Данный проект является фанатским творчеством, вдохновленным вселенной GSC Game World. Мы не претендуем на авторские права, которые в полной мере принадлежат оригинальным создателям</div>
     <div class="loader">
       <div class="loading-text">Загрузка сервера<span class="dots"></span></div>
       <div class="bar"></div>
     </div>
   </div>
-
-  <!-- Копирайт/атрибуция -->
-  <div class="credit">Данный проект является фанатским творчеством, вдохновленным вселенной GSC Game World. Мы не претендуем на авторские права, которые в полной мере принадлежат оригинальным создателям</div>
 
   <!-- Фоновая музыка (зациклена) -->
   <audio id="bgm" src="music.mp3" loop preload="auto"></audio>
@@ -242,6 +242,19 @@
     document.addEventListener('click', kick, {once:false});
     document.addEventListener('keydown', kick, {once:false});
     document.addEventListener('touchstart', kick, {once:false});
+
+    // В самом Garry's Mod экран загрузки не получает мышь и клавиатуру: кнопку и запрос «нажмите» там прячем,
+    // а громкость музыки берём из настройки громкости игрока (GMod передаёт её в GameDetails).
+    var prevGD = window.GameDetails;
+    window.GameDetails = function(servername, serverurl, mapname, maxplayers, steamid, gamemode, volume){
+      try {
+        tog.style.display = 'none';
+        hideGate();
+        var v = parseFloat(volume);
+        if (!isNaN(v)) audio.volume = Math.max(0, Math.min(1, 0.6 * v));
+      } catch(e){}
+      if (typeof prevGD === 'function') { try { prevGD.apply(this, arguments); } catch(e){} }
+    };
 
     if (document.readyState === 'complete') tryPlay();
     else window.addEventListener('load', tryPlay);
