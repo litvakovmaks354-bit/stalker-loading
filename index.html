@@ -130,6 +130,25 @@
     text-shadow:0 1px 8px rgba(0,0,0,0.9);
   }
   #sound-gate .btn span{color:var(--accent);}
+
+  /* Кнопка «Выключить музыку» (правый верхний угол) */
+  #music-toggle{
+    position:fixed;top:3vh;right:3vw;z-index:20;
+    display:flex;align-items:center;gap:10px;
+    border:1px solid rgba(200,162,74,0.55);
+    background:rgba(0,0,0,0.45);
+    color:var(--ink);
+    padding:10px 18px;
+    font-family:inherit;
+    font-size:clamp(11px,1.1vw,14px);
+    letter-spacing:0.2em;text-transform:uppercase;
+    text-shadow:0 1px 8px rgba(0,0,0,0.9);
+    cursor:pointer;
+    transition:background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  #music-toggle:hover{background:rgba(200,162,74,0.18);border-color:var(--accent);color:#fff;}
+  #music-toggle .ico{color:var(--accent);font-size:1.2em;line-height:1;}
+  #music-toggle.off{color:rgba(231,226,212,0.7);border-color:rgba(200,162,74,0.3);}
 </style>
 </head>
 <body>
@@ -155,6 +174,9 @@
   <!-- Фоновая музыка (зациклена) -->
   <audio id="bgm" src="music.mp3" loop preload="auto"></audio>
 
+  <!-- Выключить / включить музыку -->
+  <button id="music-toggle" type="button"><span class="ico">♪</span><span class="lbl">Выключить музыку</span></button>
+
   <!-- Фолбэк: если браузер запретил автостарт со звуком -->
   <div id="sound-gate">
     <div class="btn">▶ Нажмите, чтобы <span>включить звук</span></div>
@@ -164,12 +186,39 @@
   (function(){
     var audio = document.getElementById('bgm');
     var gate  = document.getElementById('sound-gate');
+    var tog   = document.getElementById('music-toggle');
+    var lbl   = tog.querySelector('.lbl');
+    var ico   = tog.querySelector('.ico');
     audio.volume = 0.6;
+
+    // Выбор игрока запоминается (если хранилище доступно)
+    var off = false;
+    try { off = localStorage.getItem('perimeter_music_off') === '1'; } catch(e){}
 
     function hideGate(){ gate.classList.add('hidden'); }
 
+    function render(){
+      lbl.textContent = off ? 'Включить музыку' : 'Выключить музыку';
+      ico.textContent = off ? '✕' : '♪';
+      tog.classList.toggle('off', off);
+    }
+
+    function setOff(v){
+      off = v;
+      try { localStorage.setItem('perimeter_music_off', v ? '1' : '0'); } catch(e){}
+      if (off) { audio.pause(); hideGate(); }
+      else { audio.play().then(hideGate).catch(function(){}); }
+      render();
+    }
+
+    tog.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      setOff(!off);
+    });
+
     // Пытаемся сразу запустить музыку (в GMod loading screen часто работает)
     function tryPlay(){
+      if (off) { hideGate(); return; }
       var p = audio.play();
       if (p && typeof p.then === 'function') {
         p.then(hideGate).catch(function(){ /* браузер ждёт клик—показываем кнопку */ });
@@ -178,10 +227,12 @@
       }
     }
 
-    // По любому взаимодействию — запуск и скрытие кнопки
+    // По любому взаимодействию — запуск и скрытие кнопки (если музыку не выключили)
     function kick(){
+      if (off) { hideGate(); return; }
       audio.play().then(hideGate).catch(hideGate);
     }
+    render();
     gate.addEventListener('click', kick);
     document.addEventListener('click', kick, {once:false});
     document.addEventListener('keydown', kick, {once:false});
